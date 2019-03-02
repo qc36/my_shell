@@ -1,0 +1,438 @@
+Before beging test, make sure you have the following test program and file in the same directory with myShell:
+1)README
+
+2)repath
+
+3)argutest
+
+4)inout
+
+5)signal6
+
+6)error.txt
+
+7)input.txt
+
+8)output.txt
+
+**************************************
+Now starting test by run ./myShell.
+Then you will see it print a prompt "myShell:" followed by current directory and end with"$"
+If you hit enter dirctly or just type some whitespace then hit enter, it will do nothing since what you type is not valid input it expect. And you will just see the prompt again.
+Myshell will print this prompt every time when handle one command successfully and then wait for new input to start deal with next one.
+
+Then you need to test all the following commands in myShell:
+
+1)Run  ls
+You will see that it prints all file and directories in this current directory, followed by 
+"Program exited with status 0"."
+And then the prompt"myShell::...$"
+This is correct because "ls" does not contian a "/", so myShell search each directory specified in the environment variable "PATH" (in order) for the specified program "ls". Because "/bin" is one value of "PATH" and "ls" is in this directory, so myShell can find "ls" in "/bin" and get its absolute path "/bin/ls" and then run this program.
+The exit status is captured and printed by myShell. Since ls exit successfully, so the exit status of it is 0. 
+
+2)Run  /bin/ls
+You will see the same output as (1),unless /bin has been removed.
+This is correct because this command contain a "/", so myShell only look in the specified directory "/bin" to find program "ls" and then run it.
+
+3)Run  ./repath
+You will see:
+"this is a relative path test case."
+"Program exited with status 0"
+This is correct because this command contain "./" so myShell will search the directory ".", which is current directory. And this file can be found in the directory and is execute successfully.
+
+4)Run  ./error.txt
+You will see:
+"execve: Permission denied"
+"Program exited with status 1"
+This is correct because myShell can find it in current work directory, whcih is ".", but this file is not a executable file so child progress exit unnormally. That is why it exit with status 1.
+
+5)Run  123
+You will see: 
+"Command 123 not found"
+"Program exited with status 1"
+This is correct because this file cannot be found in each directory specified in the environment variable "PATH". As a result, child process can not be execute and exit failure so that myShell report it exit with status 1
+
+6)Run  exit
+You will see:
+"exit: Success"
+This is correct because if user typescommand "exit", then the shell should exit.
+
+7)Run  ctrl+D
+You will see the same output as (6).
+This is correct because the ctrl+D meams EOF for stdin and if EOF is encountered reading from stdin, then the shell should exit.
+
+8)Run  ./signal6
+You will see:
+"*** stack smashing detected ***: <unknown> terminated"
+"Program was killed by signal 6"
+This is correct because signal6 is exit in current directory but is broken. So myShell can find it but cannot execute it. And as a result, myShell report it is killed by signal 6.
+
+9)Run  /666/README
+You will see:
+"cannot open directory!"
+"Program exited with status 1"
+This is correct because the directory "666" is not exist so that myShell can not open it to find the program "README".As a result, child process exit failure so that myShell report it exit with status 1
+
+10)Run  /bin/README
+You will see:
+the same output as (5), 
+This is correct since "README" does not exit in directory "/bin" so myShell cannot found and then report child program exist with status 1 since it can not be execute.
+
+11)Run  ./testshell/111
+You will see same output as (4)
+This is correct because 111 is not a executable file so myShell can find it in "./testshell" directory but cannot execute it. And since execve return error and child program exit failure, myShell report it exit in status 1.
+
+12)Run  ./argutest
+You will see:
+"wrong former!"
+"Program exited with status 1"
+This is correct because program "argutest" needs arguments and if no arguments passed in, it will print "wrong former!" and exit failure. Since we just run ./argutest and no arguments follows, it exited with status 1
+
+13)Run  ./argutest a b
+You will see:
+"argv[1]:a"
+"argv[2]:b"
+"Program exited with status 0"
+This is correct because the program argutest will print all arguments which passed into it one by one and exit successfully.
+
+14)Run  ./argutest a     b
+You will see the same output as (13).
+This is correct because there can be arbitrary amount of whitespace in between arguments.
+
+15)Run  ./argutest a b    (whitespace exist after 'b' before hit enter)
+You will see the same output as (13).
+This is correct because whitespace exist after arguments should also make no influence.
+
+16)Run  ./argutest a b c  d  e  f
+You will see:
+"argv[1]:a"
+"argv[2]:b"
+"argv[3]:c"
+"argv[4]:d"
+"argv[5]:e"
+"argv[6]:f"
+"Program exited with status 0"
+This is correct because you can pass arbitrary amount of arguments you like into your program. Since argutest doest not limit the number of arguments so it print them all and then exit successfully.
+
+17)Run  ./argutest a\ b c\ \ d  
+You will see:
+"argv[1]:a b"
+"argv[2]:c  d"
+"Program exited with status 0"
+This is correct because every white space which escaped with a '\' should be literally included in the argument and not used as a separator. 
+
+18)Run  ./argutest \ \ \   a 
+You will see:
+"argv[1]:  "
+"argv[2]:a"
+"Program exited with status 0"
+This is correct because whitespace can escaped with '\' so that program "argutest" just take three whitescape as the first argument. And since there exist more than one whitespace between the third '\' and 'a', so 'a' is the second argument
+
+19)Run  ./argutest \\ a  \\b
+You wil see:
+"argv[1]:\ a"
+"argv[2]:\\b"
+"Program exited with status 0"
+This is correct because only '\' followed with whitespace can help escape a whitespace, otherwhites it is just normal sybol 
+
+20)Run  cd \bin
+You will see:
+The promt that myShell print change to "myShell:/bin$".
+ This is correct because this means the current directory now change to \bin.
+ 
+21)Run  cd ./testshell
+You will firstly see that the promt that myShell print change to "myShell:/..../mp_miniproject/testshell$"(...represent the directory that miniproject is in)
+Then  run  ./111
+You will see the same output as (11)
+This is correct because we firstly change the current work directory to the subdirectory "testshell" of current work directory. So when we run ./111 myShell will find it in current work directory(which is testshell) but cannot execute it.
+If we not run "cd ./testshell" before run "./111", we will get same output as (5) since 111 is not in the same directory as myShell(that is the work directory before we change it).
+
+22)Run  cd        /bin
+You will see the same output as (20).
+This is correct because the whitespace between "cd" and "\bin" is ignored. output is the same if you add some whitespace after "\bin", which will be ignored either.
+
+23)Run  cd 123
+You will see:
+"change path failure!"
+And the promt myShell print is not changed.
+This is correct because the path "123" is not a valid path so myShell can not change current work directory to it and will remain the current work directory.
+
+24)Run  cd 1 2 3
+You will see: 
+"too much arguments"
+This is correct because cd command only take one argument. So more than one argument will not be accept and the current work directory will not change since it is not a valid cd command.
+
+25)Run  cd
+You will see:
+"too few arguments"
+This is correct because cd command take exactly one argument so you have to give it one.
+
+26)Run  set 123 abc
+Then run  echo $123
+You will see:
+"abc"
+This is correct because we firstly set the value of variable "123" to "abc". So when you run "echo $123", "$123" is expand to its value "abc".
+
+27)Run  set 123
+(123 followed by enter, no whitespace)
+You will see:
+"too few arguments!!"
+This is correct because set command take 2 arguments, one is the variable, one is the value.
+
+28)Run  set 
+(does not matter how many whitespace followed)
+You will see the same output as (28), since set command take 2 arguments.
+
+29)Run  set    123 abc
+Then run echo $123
+You will see the same output as (26). 
+This is correct since it does not matter how many whitespace between "set" and the variable it need to set value.
+
+30)Run set 23%^ aa
+You will see:
+"invalid variable name!"
+This is correct because variable name must be a combination of letters (case sensitive), underscores, and numbers. So "23%^" is not a valid variable name.
+
+31)Run  env
+You will see:
+"Program exited with status 0"
+This is correct since we have not export any variable to the environment of child program. So the program env has no environment to print, it just do nothong then exit succefully.
+
+32)Run  set    123   abc   
+Then run export 123
+Then run env
+You will see:
+"123=  abc"
+This is correct because set command should set the variable "123" to the string on the rest of the command line (even if it contains spaces), which means that the whitespace between "set" and "123" does not matter but other whitespace(except the whitespce which used to seperate "123" and its value) need to treat as part of the value of "123".
+Then since you export 123 and then run env, so you can see the variable "123" and its value is passed into child program as environment.
+
+
+33)Run  set 456 
+(123 followed by one whitespace)
+Then  run export 456
+Then  run env
+You will see:
+"123=  abc"
+"456="
+This is correct because this command set 456 to the string on the rest of command line, which is a empty string(the whitespace followed by 456 is used to seperate the empty string and 456).And since in (31), we export 123, which should become the environment variable of all the rest child program that myShell excute. So after we export 456, add it to the environment of myShell`s child program, we know have two environment variable in myShell`s child program.
+
+34)Run       set    123    def  
+Then  run   export   123
+Then  run env  
+You will see:
+"123=   def  "
+"456="
+This is correct because we set "123" to new value "def" and then export it. So the environment variable that myShell pass into child program will also update to the value we set.
+And also, only the whitespace after "123 " will be part of the value of 123, other whitespace will nit influent the output.
+
+35)Run  set 123 666
+Then  run env
+Then  run echo $123
+You will see:
+"123=   def  "
+"456="
+"666"
+This is correct since although we update the value of "123", wo does not export it. So the environmant variable of myShell`s child program will remain as befor. But since we use set to update the value of "123", so we can expand "123" to the new value "666" although we have not export it.
+
+36)Run  export
+You will see:
+"too few arguments"
+This is correct because export need one argument.
+
+37)Run  export a b v
+You will see:
+"too much arguments"
+This is correct because export need one argument.
+
+38)Run  export %^
+You will see:
+"no such variable can be exported or variable name is invalid!"
+This is correct because %^ is not a valid name of variable so we can not export it.
+
+39)Run  export README
+You wil see:
+"no such variable can be exported or variable name is invalid!"
+This is correct because we haven`t set a variable named "README" before so we can not export it.
+
+40)Run set a-b c
+You will see:
+"invalid variable name!"
+This is correct because "a-b" is not a valid variable name.
+
+41)Run  set 41 ./argutest a b
+Then run  $41 
+You will see the same output as (13).
+This is correct because we set the value of variable "41" to "./argutest a b" and then when we type "$41", myShell will expand it to its value and execute it.
+
+42)Run  set 42 ./argutest a 
+Then run $42b
+You will see the same output as (13).
+This is correct because we set the value of variable "41" to "./argutest a " and then when we type "$41b", myShell will expand "$41" to its value, so the actal command that myShell execute is "./argutest a b", which is the same as (13).
+
+43)Run  set 43 ./
+Then run $43argutest a b
+You will see the same output as (13).
+This is correct and the reason is same as (42), myShell will expand "$43" to "./", so that the actual command it execute is "./argutest a b".
+
+44)Run  set pratt yyy
+Then run  set prattschool nnn
+Then run echo $prattschool
+You will see:
+"nnn"
+This is correct because when expand variable, myShell will recognize the longest match variable name to expand, so it will not expand "$prattschool" to "yyyschool".
+
+45)Run  set a 1
+Then run set b 2
+Then run echo $a$b  $bb$c $$b
+You will see:
+"12 2b$c $2"
+This is correct because myShell only expand the variable name it have set to the corresponding value. Since we set 1 to a, set 2 to b, "$c" or "$" will not be expand, they will remian no change and only "$a", "$b" will be expand.
+
+46)Run  export PWD
+Then run env
+You will see:
+"PWD=/.../mp_miniproject"(... represent the direcotry that mp_miniproject in)
+This is correct because although we not set PWD, it is a environment variable of myShell, which represent the current work directory. So we can also export it the the child program of myShell.
+
+47)Run  set PATH ./testshell
+Then run 111
+You will see the same output as (11).
+This correct because we use set the change the value of variable "PATH" in the environment myShell, so the where your shell searches for programs will change accordingly. So now it will only searche "./testshell" to find the path if the command name does not contian a '/' or './' in it. So when we run 111, it will find this program in ./testshell and execute it. 
+But if we run "ls" then, we will see:
+"Command ls not found"
+"Program exited with status 1"
+This is correct because we can just search "./testshell" to find the path, but "ls" is not in this directory, so we cannot find and execute it.
+
+48)Run  set a 1
+Then run  inc a
+Then run  echo $a
+You will see:
+"2"
+This is correct since we set 1 to "a" and then inc it, so the value of "a" will increment and become 2.
+
+49)Run set  a b
+Then run inc a
+Then run echo $a
+You will see:
+"1"
+This is correct because we firstly set "b" to "a", which is not a number, so when myShell execute "inc a", it will treat the value of "a" as 0 and so increment to 1.
+
+50)Run set  a 1.1
+Then run inc a
+Then run echo $a
+You will see the same output as (49)
+This is correct because we set "1.1" to "a", which is also not a number based 10, so when myShell execute "inc a",it will treat the value of "a" as 0 and so increment to 1.
+
+51)Run  inc ece
+Then run  echo $ece
+You will see the same output as (49)
+This is correct because we haven`t set the variable "ece" before, so when myShell execute "inc ece", it will treat the value of "a" as 0 and so increment to 1.
+
+52)Run  set xxx 6
+Then run  export xxx
+Then run  env
+Then run  inc xxx
+Then run env
+You will see:
+"xxx=6"
+"xxx=6"
+This is correct because firstly we set "6" to "xxx" and then export it to the environment of child program. So the first time when we run env, the value of "xxx" in child program`s environment should be 6. And then, we inc xxx but not export it, so the value of xxx in child program is still 6, that`s why we see the same output as the first env. If we want to update the value of an "inc" command, we need to export it to child program`s environment again by ourselves.
+
+53) Run  inc PATH
+Then run  export PATH
+Then run env
+You will see:
+"PATH=1"
+This is correct because we can also inc the variable which exist in the environment of myShell and then export them to the child program`s environment.
+
+54) Run  ./argutest 2> error.txt
+Then Run cat error.txt
+You wll see the same output as (12).
+This is correct since if program argutest with no arguments, it will report an error and print information accordingly. So the error information from stderr is print to the file "error.txt". So when we run "cat error.txt", cat command will print all the content in error.txt out.
+
+55) Run  ./argutest 2> nonono
+You will see:
+"can not open file!"
+"Program exited with status 1"
+This is correct because the file "nonono" is not exist in current directory, so myShell cannot find and open it.
+
+56)Run  cat input.txt
+Then run ./inout < input.txt > output.txt
+Then run cat output.txt
+You will see:
+"runnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn!"
+"runnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn!"
+"Program exited with status 0"
+This is correct because inout can read from stdin and then print what it read to stdout so that firstly stdin is redirect to the file "input.txt" so the program inout just read from "input.txt". And then, since the stdout is redirect to the file "output.txt", so inout just print its output to this file.
+So when we run "cat output.txt", we can see that the content of output.txt is just the same as input.txt
+
+57)Run  cat input.txt
+Then run ./inout > output.txt < input.txt
+Then run cat output.txt
+You will see the same output as (56) since the order of redirection does not matter.
+
+58)Run  cat input.txt
+Then run > output.txt ./inout  < input.txt
+Then run cat output.txt
+You will see the same output as (56) since the order of redirection does not matter.
+
+59)Run  cat input.txt
+Then run > output.txt  < input.txt ./inout
+Then run cat output.txt
+You will see the same output as (56) 
+This is correct since the order of redirection does not matter.
+
+60)Run  cat input.txt
+Then run > output.txt  < input.txt ./inout > error.txt
+Then run cat output.txt
+Then run cat error.txt
+You will see the same output as (56).
+This is correct since for one kind of redirection, we only redirect the file followed by the first redirection symbol. So we redirection stdout to output.txt but ignor error.txt So the content of error.txt will not change.
+
+61)Run  cat input.txt
+Then run > output.txt  <  input.txt <  error.txt  ./inout
+Then run cat output.txt
+Then run cat error.txt
+You will see the same output as (56).
+This is correct because we only redirect stdin to input.txt and ignor error.txt. So the content of output.txt will be the same as input.txt but not error.txt
+
+62)Run  ./argutest     2>      error.txt
+Then run  cat error.txt
+You will see the same output as (54) since the number of whitespace between command does not matter.
+
+63)Run  ./argutest    2>error.txt
+Then you will see:
+"argv[1]:2>error.txt"
+"Program exited with status 0"
+This is correct because myShell need at least one whitespace between redirect symbol "2>" and redirect file to split and recognize them. Otherwites myShell will treat them as normal arguments or program name. Since there are no whitespace between "2>" and "error.txt", myShell just determine that no redirection exist in this command and pass "2>error.txt" as argument to the program argutest.
+
+64)Run  ./inout < input.txt> output.txt
+You will see:
+"can not open file!"
+"Program exited with status 1"
+This is correct because there are not whitespace exist between "input.txt" and ">" so myShell will treat "input.txt>" as the name of file we need to redirect stdin to and then try to open it. There are no such file exist in current directory, so myShell cannot open it and then child program exit failure. (in this case, "output.txt" is treated as the arguments we need to pass into inout)
+
+65)Run  ./inout < input.txt > ./testshell/test.txt
+You will see the content of "input.txt" is print into "test.txt" which is in the subdirectory "testshell" of current work directory.
+
+66)Run ./argutest 2>
+You will see:
+"wrong format of redirection!!"
+"Program exited with status 1"
+This is correct because redirection symbol can not be put in the end of command, myShell needs a filename after it to complete redirection.
+
+67)Run  < input.txt
+You will see:
+"Program exited with status 1"
+This is correct because no program name is given to myShell to execute in this command, so myShell just skip this command and then wait for the next command.
+
+68)Run  set yyy 2> error.txt ./argutest
+Then Run  $yyy
+Then run cat error.txt
+You will see the same output as (54)
+This is correct because in the command "set", myShell just set the string on the rest of command line as  the value of variable "yyy" but not translation "2>" as redirection symbol. So after that when we run $yyy, myShell will expand yyy to its value and  then execute it. So we can see the error information of program "argutest" is print to error.txt
+
+Run  ./myShell < input.txt
+You will see:
+"exit: Success"
+This is correct because this command redirect the stdin to the file "input.txt". So when myShell read from this file and then encounter EOF from it, then myShell should exit.

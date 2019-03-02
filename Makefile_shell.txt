@@ -1,0 +1,8 @@
+myShell:myShell.cpp myshell.h inputhandle.h
+	g++ $(CFLAGS) -o myShell  myShell.cpp
+ 
+ 
+ 
+ 
+ test:redir_test_output.cpp
+	g++ $(CFLAGS) -o test redir_test_output.cpp
